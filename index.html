@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QaqpanX</title>
+<style>
+  :root { --ink:#141414; --mute:#8a8a8a; --line:#e6e6e6; --bg:#fafafa; --card:#fff; --red:#d9412b; --ok:#1f7a4d; --amber:#c98a12; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--ink); background:var(--bg);
+         min-height:100vh; display:flex; gap:40px; align-items:flex-start; justify-content:center; padding:28px 16px; flex-wrap:wrap; }
+  button { font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+  .who { font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--mute); margin-bottom:12px; }
+
+  /* phone */
+  .phone { width:320px; height:660px; background:#1c1c1e; color:#fff; border-radius:44px; padding:26px 22px;
+           display:flex; flex-direction:column; position:relative; overflow:hidden; box-shadow:0 30px 60px -30px rgba(0,0,0,.25); }
+  .top { font-size:13px; color:#aaa; display:flex; justify-content:space-between; }
+  .clock { text-align:center; margin-top:40px; }
+  .clock b { display:block; font-size:72px; font-weight:300; letter-spacing:-.03em; line-height:1; }
+  .clock span { font-size:15px; color:#aaa; }
+  .pushes { position:absolute; left:12px; right:12px; top:250px; display:flex; flex-direction:column; gap:8px; }
+  .push { background:rgba(255,255,255,.14); border-radius:18px; padding:12px 14px; font-size:13px; cursor:pointer;
+          animation:in .4s ease both; }
+  @keyframes in { from { transform:translateY(-20px); opacity:0 } }
+  .push .h { display:flex; justify-content:space-between; font-size:11px; color:#bbb; margin-bottom:3px; }
+  .msg { position:absolute; inset:0; background:#fff; color:var(--ink); padding:56px 24px 26px; display:none; flex-direction:column; }
+  .msg.on { display:flex; }
+  .msg h2 { font-size:21px; line-height:1.25; margin-bottom:14px; }
+  .msg p { font-size:15px; color:#555; margin-bottom:10px; }
+  .msg .btn { border-radius:16px; padding:14px; font-weight:600; margin-top:10px; border:1px solid var(--line); }
+  .msg .btn.dark { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .msg .first { margin-top:auto; }
+  .buzz { animation:buzz .12s linear 6; }
+  @keyframes buzz { 25% { transform:translateX(-3px) } 75% { transform:translateX(3px) } }
+
+  /* radar */
+  .radar { width:900px; max-width:100%; }
+  .tabs { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .tabs button { border:1px solid var(--line); border-radius:999px; padding:8px 16px; font-size:14px; background:#fff; }
+  .tabs button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:24px; padding:20px; }
+  .story { font-size:14px; color:var(--mute); margin-bottom:6px; min-height:20px; }
+  svg { width:100%; height:auto; display:block; }
+  svg text { font:13px system-ui,"Segoe UI",sans-serif; fill:var(--ink); }
+  svg text.m { fill:var(--mute); font-size:12px; }
+  .edge { stroke:var(--line); stroke-width:2; fill:none; }
+  .edge.hot { stroke:var(--ink); }
+  .edge.cut { stroke:var(--red); stroke-dasharray:6 6; }
+  .edge.back { stroke:var(--ok); }
+  .edge.pass { stroke:var(--ok); }
+  .node { fill:#fff; stroke:var(--ink); stroke-width:1.5; }
+  .node.drop { stroke:var(--red); stroke-width:2.5; }
+  .row2 { display:grid; grid-template-columns:300px 1fr; gap:20px; margin-top:16px; }
+  .score b { font-size:60px; font-weight:700; line-height:1; letter-spacing:-.03em; }
+  .score small { color:var(--mute); font-size:13px; display:block; }
+  .verdict { display:inline-block; font-size:12px; font-weight:600; padding:4px 10px; border-radius:999px; margin:8px 0 10px; background:#eee; }
+  .v-ok { background:#e5f2eb; color:var(--ok); } .v-watch { background:#fbf0d9; color:var(--amber); } .v-hold { background:#fbe3df; color:var(--red); }
+  .why { list-style:none; font-size:12px; }
+  .why li { display:grid; grid-template-columns:1fr 54px 70px; gap:6px; align-items:center; padding:4px 0; border-bottom:1px solid var(--line); }
+  .why .val { color:var(--mute); text-align:right; }
+  .why .bar { height:8px; position:relative; background:#f3f3f3; border-radius:4px; }
+  .why .bar i { position:absolute; top:0; bottom:0; border-radius:4px; }
+  .model { font-size:11px; color:var(--mute); margin-top:10px; line-height:1.4; }
+  .log { display:flex; flex-direction:column; gap:8px; max-height:330px; overflow:auto; }
+  .ev { border:1px solid var(--line); border-radius:12px; padding:9px 13px; font-size:13px; }
+  .ev b { display:block; font-size:14px; }
+  .ev small { color:var(--mute); }
+  .ev.alarm { border-color:var(--red); } .ev.alarm b { color:var(--red); }
+  .ev.good { border-color:var(--ok); } .ev.good b { color:var(--ok); }
+  .ctrl { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .ctrl button { border-radius:12px; padding:12px 18px; font-weight:600; border:1px solid var(--line); }
+  .ctrl .go { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .ctrl .stop { background:var(--red); color:#fff; border-color:var(--red); }
+  .ctrl button:disabled { opacity:.35; cursor:default; }
+  .empty { color:var(--mute); font-size:13px; padding:24px 12px; text-align:center; border:1px dashed var(--line); border-radius:12px; }
+</style>
+</head>
+<body>
+
+<div>
+  <p class="who" id="phoneWho"></p>
+  <div class="phone" id="phone">
+    <div class="top"><span>Tele2</span><span>64%</span></div>
+    <div class="clock"><b id="clk"></b><span id="day"></span></div>
+    <div class="pushes" id="pushes"></div>
+    <div class="msg" id="msg"></div>
+  </div>
+</div>
+
+<div class="radar">
+  <p class="who">QaqpanX · антидроп-радар банка</p>
+  <div class="tabs" id="tabs"></div>
+  <div class="panel">
+    <p class="story" id="story"></p>
+    <svg viewBox="0 0 820 345" id="g"></svg>
+    <div class="row2">
+      <div class="score">
+        <small>Вероятность дропа (модель)</small>
+        <b id="pct">—</b><br>
+        <span class="verdict" id="verdict">ждём событий</span>
+        <ul class="why" id="why"></ul>
+        <p class="model">Логистическая регрессия · обучена на 10 000 синтетических счетов · на тесте находит 93% дропов, ложная тревога у 0,8% честных клиентов</p>
+      </div>
+      <div class="log" id="log"></div>
+    </div>
+    <div class="ctrl">
+      <button class="go" id="bGo" onclick="SC[cur].run()">▶ Запустить</button>
+      <button class="stop" id="bStop" onclick="freeze()" disabled hidden>Заморозить цепочку и вернуть деньги</button>
+      <button onclick="pick(cur)">Сбросить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== модель: веса из model/model.json (python model/train.py) =====
+const M = { intercept:-8.70986, threshold:0.8,
+  mean:[6.50894,0.99539,0.27656,6.0722,0.33008,0.05443,42.58614,0.86196],
+  std:[1.63633,0.70244,0.23284,1.32428,0.23862,0.22686,16.4959,0.37872],
+  coef:[-0.89337,-1.19512,3.01427,-0.87176,3.07337,0.33219,-0.23963,0.60216] };
+const F = [ // ключ, подпись, логарифм?, формат значения
+  ['card',    'Возраст карты',          1, v => v + ' дн'],
+  ['senders', 'Отправителей за сутки',  1, v => v],
+  ['unknown', 'Незнакомые отправители', 0, v => Math.round(v * 100) + '%'],
+  ['mins',    'Минут до вывода',        1, v => v >= 1440 ? 'нет' : v],
+  ['out',     'Ушло дальше',            0, v => Math.round(v * 100) + '%'],
+  ['dev',     'Новый телефон, др. город', 0, v => v ? 'да' : 'нет'],
+  ['age',     'Возраст клиента',        0, v => v],
+  ['amt',     'Сумма к обычной',        1, v => '×' + (+v).toFixed(1)],
+];
+function predict(x) {
+  const parts = F.map(([k, , lg], i) => {
+    const v = lg ? Math.log1p(x[k]) : x[k];
+    return M.coef[i] * (v - M.mean[i]) / M.std[i];
+  });
+  const p = 1 / (1 + Math.exp(-(M.intercept + parts.reduce((a, b) => a + b, 0))));
+  return { p, parts };
+}
+
+// ===== утилиты =====
+const $ = id => document.getElementById(id);
+const fmt = n => Math.round(n).toLocaleString('ru-RU') + ' ₸';
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const now = () => new Date().toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+const NS = 'http://www.w3.org/2000/svg';
+let cur = 0, x = {}, run = 0;   // run — номер запуска, чтобы «Сбросить» обрывал старую анимацию
+
+const tick = () => { $('clk').textContent = now();
+  $('day').textContent = new Date().toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' }); };
+tick(); setInterval(tick, 10000);
+
+function show(state) {
+  Object.assign(x, state);
+  const { p, parts } = predict(x);
+  const pct = Math.round(p * 100);
+  $('pct').textContent = pct > 99 ? '>99%' : pct + '%';
+  $('pct').style.color = p >= M.threshold ? 'var(--red)' : p >= .5 ? 'var(--amber)' : 'var(--ink)';
+  const v = $('verdict');
+  if (p >= M.threshold) { v.className = 'verdict v-hold'; v.textContent = 'вывод будет удержан'; }
+  else if (p >= .5) { v.className = 'verdict v-watch'; v.textContent = 'под наблюдением'; }
+  else { v.className = 'verdict v-ok'; v.textContent = 'всё нормально, пропускаем'; }
+  const max = 6;
+  $('why').innerHTML = F.map(([k, label, , f], i) => [label, f(x[k]), parts[i]])
+    .sort((a, b) => Math.abs(b[2]) - Math.abs(a[2]))
+    .map(([label, val, c]) => {
+      const w = Math.min(Math.abs(c) / max, 1) * 50;
+      const st = c >= 0 ? `left:50%;width:${w}%;background:var(--red)` : `right:50%;width:${w}%;background:var(--ok)`;
+      return `<li><span>${label}</span><span class="val">${val}</span><span class="bar"><i style="${st}"></i></span></li>`;
+    }).join('');
+  return p;
+}
+
+function add(t, d, cls = '') {
+  $('log').querySelector('.empty')?.remove();
+  $('log').insertAdjacentHTML('afterbegin', `<div class="ev ${cls}"><b>${t}</b><small>${now()} · ${d}</small></div>`);
+}
+
+// ===== граф =====
+function el(tag, attrs, text) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  $('g').append(e); return e;
+}
+function spread(n, i) { return n === 1 ? 165 : 50 + i * (230 / (n - 1)); }
+function draw(g) {
+  $('g').innerHTML = '';
+  const C = [390, 165];
+  g.left.forEach((n, i) => {
+    const y = spread(g.left.length, i), small = g.left.length > 4;
+    n.edge = el('path', { class:'edge', d:`M${110} ${y} L${C[0] - 20} ${C[1]}` });
+    el('circle', { class:'node', cx:90, cy:y, r: small ? 10 : 20 });
+    el('text', { x: small ? 70 : 90, y: small ? y + 4 : y + 40, 'text-anchor': small ? 'end' : 'middle' }, n.name);
+    if (!small) n.sub = el('text', { class:'m', x:90, y:y + 56, 'text-anchor':'middle' }, n.note || '');
+  });
+  g.right.forEach((n, i) => {
+    const y = g.right.length === 1 ? 165 : [90, 240][i];
+    n.edge = el('path', { class:'edge', d:`M${C[0] + 20} ${C[1]} L680 ${y}` });
+    el('circle', { class:'node', cx:700, cy:y, r:20 });
+    el('text', { x:700, y:y + 40, 'text-anchor':'middle' }, n.name);
+    el('text', { class:'m', x:700, y:y + 56, 'text-anchor':'middle' }, n.note || '');
+  });
+  g.cNode = el('circle', { class:'node', cx:C[0], cy:C[1], r:26 });
+  el('text', { x:C[0], y:C[1] + 50, 'text-anchor':'middle' }, g.center);
+  g.cSum = el('text', { class:'m', x:C[0], y:C[1] + 67, 'text-anchor':'middle' }, '');
+  g.dots = el('g', {});
+}
+function flow(path, color, ms, stopAt = 1, reverse = false) {
+  const len = path.getTotalLength(), c = document.createElementNS(NS, 'circle'), my = run;
+  c.setAttribute('r', 7); c.setAttribute('fill', color); G.dots.append(c);
+  return new Promise(res => {
+    const t0 = performance.now();
+    (function step(t) {
+      if (my !== run) return;   // сброшено
+      const k = Math.min((t - t0) / ms, 1) * stopAt;
+      const p = path.getPointAtLength(len * (reverse ? 1 - k : k));
+      c.setAttribute('cx', p.x); c.setAttribute('cy', p.y);
+      if (k < stopAt) requestAnimationFrame(step); else res(c);
+    })(t0);
+  });
+}
+
+// ===== телефон =====
+function push(title, text, onclick) {
+  const d = document.createElement('div');
+  d.className = 'push';
+  d.innerHTML = `<div class="h"><span>🏦 Банк</span><span>сейчас</span></div><b>${title}</b><br>${text}`;
+  if (onclick) d.onclick = onclick;
+  $('pushes').prepend(d);
+  const ph = $('phone'); ph.classList.remove('buzz'); void ph.offsetWidth; ph.classList.add('buzz');
+}
+function screen(html) { $('msg').innerHTML = html; $('msg').classList.add('on'); }
+
+// ===== сценарии =====
+let G;
+const guard = async (ms, my) => { await wait(ms); if (my !== run) throw 'reset'; };
+
+const SC = [
+{
+  tab: '1 · Дроп-цепочка', who: 'Телефон Данияра, 17 лет',
+  story: 'Трём людям позвонила «служба безопасности банка». Они переводят деньги «на безопасный счёт» — карту Данияра.',
+  graph: () => ({ center:'Данияр, 17 · •• 7710',
+    left:[{ name:'Роза, 68', sum:250000 }, { name:'Ерлан, 34', sum:180000 }, { name:'Гульнар, 51', sum:120000 }],
+    right:[{ name:'Карта •• 3391', note:'Шымкент' }, { name:'Криптообменник', note:'USDT' }] }),
+  base: { card:9, senders:0, unknown:0, mins:1440, out:0, dev:0, age:17, amt:1 },
+  async run() {
+    const my = run; $('bGo').disabled = true;
+    const usual = 20000; let total = 0;
+    for (let i = 0; i < 3; i++) {
+      const v = G.left[i];
+      v.edge.classList.add('hot');
+      await flow(v.edge, '#141414', 1000); await guard(0, my);
+      total += v.sum; G.cSum.textContent = fmt(total);
+      v.sub.textContent = '−' + fmt(v.sum);
+      const p = show({ senders:i + 1, unknown:1, amt: total / usual });
+      add(`${v.name.split(',')[0]} → •• 7710`, `${fmt(v.sum)} · «перевод на безопасный счёт»`);
+      if (i === 0) add('Радар: ' + Math.round(p * 100) + '%', 'Уже после первого перевода. Любой вывод с карты будет удержан', p >= M.threshold ? 'alarm' : '');
+      await guard(400, my);
+    }
+    show({ dev:1 });
+    add('Вход с нового телефона', 'Samsung A15 · Шымкент · карта в Алматы');
+    await guard(900, my);
+    const out = total * 0.95;
+    G.right.forEach(r => r.edge.classList.add('cut'));
+    add('Попытка вывести деньги', `${fmt(out)} через 3 минуты после зачисления. Дроп оставил себе 5%`);
+    await Promise.all(G.right.map(r => flow(r.edge, '#d9412b', 900, .5))); await guard(0, my);
+    const p = show({ mins:3, out:.95 });
+    G.cNode.classList.add('drop');
+    add('Вывод удержан', `Модель: дроп с вероятностью ${Math.round(p * 100) > 99 ? ">99" : Math.round(p * 100)}%. Деньги остались в банке`, 'alarm');
+    $('bStop').disabled = false;
+  },
+},
+{
+  tab: '2 · День рождения', who: 'Телефон Алии, 19 лет',
+  story: 'Проверка на ложную тревогу. У студентки день рождения — 12 друзей скидывают деньги, вечером она платит в кафе.',
+  graph: () => ({ center:'Алия, 19 · •• 2045',
+    left:['Жанна','Арман','Дина','Тимур','Аружан','Нурлан','Камила','Ержан','Мадина','Санжар','Айгерим','Бекзат'].map(n => ({ name:n })),
+    right:[{ name:'Кафе «Қымыз»', note:'оплата QR' }] }),
+  base: { card:420, senders:0, unknown:0, mins:1440, out:0, dev:0, age:19, amt:1 },
+  async run() {
+    const my = run; $('bGo').disabled = true;
+    let total = 0;
+    for (let i = 0; i < G.left.length; i++) {
+      const v = G.left[i], sum = [2000, 3000, 5000][i % 3];
+      v.edge.classList.add('hot');
+      await flow(v.edge, '#141414', 450); await guard(0, my);
+      total += sum; G.cSum.textContent = fmt(total);
+      show({ senders:i + 1, unknown: i < 9 ? 0 : (i - 8) / (i + 1), amt: total / 15000 });
+      if (i % 4 === 0) push(`+${fmt(sum)}`, `${v.name}: «С днём рождения! 🎂»`);
+    }
+    add('12 переводов за 2 часа', `${fmt(total)} · почти все отправители уже переводили Алие раньше`);
+    await guard(800, my);
+    G.right[0].edge.classList.add('pass');
+    await flow(G.right[0].edge, '#1f7a4d', 900); await guard(0, my);
+    const p = show({ mins:180, out:.4 });
+    add('Оплата в кафе пропущена', `Модель: ${Math.round(p * 100)}%. Много отправителей само по себе — не подозрительно`, 'good');
+    add('Почему не тревога', 'Отправители знакомые, карте больше года, деньги не уходят дальше за минуты', 'good');
+  },
+},
+{
+  tab: '3 · До вербовки', who: 'Телефон Данияра, 17 лет',
+  story: 'Данияр ответил на объявление «оператор платежей». «Работодатель» пытается войти в его банк со своего телефона.',
+  graph: () => ({ center:'Данияр, 17 · •• 7710',
+    left:[{ name:'Samsung A15', note:'Шымкент · новое устройство' }], right:[] }),
+  base: { card:3, senders:0, unknown:0, mins:1440, out:0, dev:0, age:17, amt:1 },
+  async run() {
+    const my = run; $('bGo').disabled = true;
+    G.left[0].edge.classList.add('hot');
+    await flow(G.left[0].edge, '#c98a12', 1200, .85); await guard(0, my);
+    show({ dev:1 });
+    $('verdict').className = 'verdict v-watch'; $('verdict').textContent = 'сработало правило «до вербовки»';
+    add('Вход с нового устройства', 'Клиенту 17 лет, карте 3 дня, вход из другого города. Денег ещё не было');
+    add('Модель пока молчит — работает правило', 'Переводов ещё нет, модели нечего оценивать. Ловим раньше: на входе');
+    add('Вход приостановлен', 'Спрашиваем самого Данияра — на его основном телефоне', 'alarm');
+    screen(`<h2>Кто-то входит в твой банк</h2>
+      <p>Телефон Samsung A15, город Шымкент. Это ты?</p>
+      <p>Если тебе предложили «подработку оператором платежей» — это вербовка в дропы. Статья 232-1 УК РК.</p>
+      <button class="btn dark first" onclick="pre(1)">Мне предложили подработку</button>
+      <button class="btn" onclick="pre(2)">Нет, это не я</button>
+      <button class="btn" onclick="pre(0)">Да, это мой телефон</button>`);
+  },
+},
+];
+
+window.pre = k => {
+  const txt = [
+    ['Хорошо', 'Вход разрешён. Если передумаешь — кнопка «Это был не я» в настройках.'],
+    ['Спасибо, что сказал', 'Вход заблокирован, чужой телефон отвязан. Не отвечай этому «работодателю». Сегодня позвонит сотрудник банка — расскажи, где нашёл объявление.'],
+    ['Вход заблокирован', 'Смени пароль. Сотрудник банка позвонит в течение часа.'],
+  ][k];
+  screen(`<h2>${txt[0]}</h2><p>${txt[1]}</p><button class="btn dark first" onclick="document.getElementById('msg').classList.remove('on')">Закрыть</button>`);
+  if (k === 1) {
+    G.left[0].edge.setAttribute('class', 'edge cut');
+    add('Дроп предотвращён до первой кражи', 'Через карту не прошло ни одного тенге. Объявление → в полицию', 'good');
+  } else if (k === 2) {
+    G.left[0].edge.setAttribute('class', 'edge cut');
+    add('Вход заблокирован', 'Клиент не узнал устройство', 'good');
+  } else add('Клиент подтвердил вход', 'Наблюдение за картой 30 дней');
+};
+
+async function freeze() {
+  $('bStop').disabled = true;
+  G.dots.innerHTML = '';
+  add('Цепочка заморожена', 'Карты •• 7710 и •• 3391 удержаны, данные — в Антифрод-центр Нацбанка', 'alarm');
+  G.left.forEach(v => v.edge.setAttribute('class', 'edge back'));
+  await Promise.all(G.left.map(v => flow(v.edge, '#1f7a4d', 1300, 1, true)));
+  G.left.forEach(v => { v.sub.textContent = 'вернули ' + fmt(v.sum); v.sub.style.fill = 'var(--ok)'; });
+  G.cSum.textContent = '0 ₸';
+  add('Деньги возвращены', 'Роза, Ерлан и Гульнар получили SMS: «Ваши деньги найдены»', 'good');
+  await wait(700);
+  push('Данияр, это важно', 'Твоей картой •• 7710 пользуются мошенники. Открой.', () => screen(`
+    <h2>Через твою карту прошли украденные деньги</h2>
+    <p>Сегодня на неё пришли 550 000 ₸ от трёх незнакомых людей. Их обманули по телефону.</p>
+    <p>Если ты отдал карту «за подработку» — скажи честно. Деньги мы заморозили и вернули людям.</p>
+    <button class="btn dark first" onclick="answer(true)">Да, я дал доступ к карте</button>
+    <button class="btn" onclick="answer(false)">Это не я</button>`));
+  add('Данияру отправлено сообщение', 'Не только блокировка: даём шанс рассказать, кто его нанял');
+}
+
+window.answer = yes => {
+  screen(yes
+    ? `<h2>Спасибо, что сказал честно</h2>
+       <p>Ты не первый. Таких ребят ищут через объявления «подработка оператором платежей».</p>
+       <p>Сегодня позвонит сотрудник банка. Расскажи, кто тебе писал, — это поможет найти остальных.</p>
+       <button class="btn dark first" onclick="this.textContent='Ждите звонка ✓'">Хорошо</button>`
+    : `<h2>Карта заблокирована</h2>
+       <p>Похоже, кто-то получил доступ к твоему банку. Сегодня позвонит сотрудник и поможет выпустить новую карту.</p>
+       <button class="btn dark first" onclick="this.textContent='Ждите звонка ✓'">Понятно</button>`);
+  add(yes ? 'Данияр признался' : 'Данияр: «это не я»',
+      yes ? 'Связь с вербовщиком → следствию' : 'Проверка взлома аккаунта', yes ? 'good' : '');
+};
+
+function pick(i) {
+  run++; cur = i;
+  const s = SC[i];
+  $('tabs').querySelectorAll('button').forEach((b, k) => b.classList.toggle('on', k === i));
+  $('phoneWho').textContent = s.who;
+  $('story').textContent = s.story;
+  $('pushes').innerHTML = ''; $('msg').classList.remove('on');
+  $('log').innerHTML = '<div class="empty">Нажмите «Запустить»</div>';
+  $('bGo').disabled = false;
+  $('bStop').hidden = i !== 0; $('bStop').disabled = true;
+  G = s.graph(); draw(G);
+  x = {}; show(s.base);
+}
+
+SC.forEach((s, i) => {
+  const b = document.createElement('button');
+  b.textContent = s.tab; b.onclick = () => pick(i);
+  $('tabs').append(b);
+});
+window.addEventListener('unhandledrejection', e => { if (e.reason === 'reset') e.preventDefault(); });
+pick(0);
+</script>
+</body>
+</html>
