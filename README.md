@@ -63,11 +63,12 @@ model/
 
 Демо открывается прямо в браузере, достаточно `index.html`.
 
-Переобучить модель:
+Обучить модель с нуля (необязательно, готовые веса уже лежат в `model/model.json`):
 
 ```bash
 pip install numpy scikit-learn
-python model/train.py
+cd model
+python train.py
 ```
 
 > Данные синтетические, реальных банковских данных в проекте нет.
